@@ -8,7 +8,9 @@ get_filename_component( APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE )
 
 include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 
+file(GLOB_RECURSE QTAdvanced_SRC "${APP_PATH}/src/*.*")
+
 ci_make_app(
-	SOURCES     ${APP_PATH}/src/QTimeAdvApp.cpp
+	SOURCES     ${QTAdvanced_SRC}
 	CINDER_PATH ${CINDER_PATH}
 )

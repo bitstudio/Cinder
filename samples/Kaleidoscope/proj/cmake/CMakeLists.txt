@@ -8,7 +8,10 @@ get_filename_component( APP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../" ABSOLUTE )
 
 include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 
+file(GLOB_RECURSE INSTASCOPE_SRC "${APP_PATH}/src/*.*")
+
 ci_make_app(
-	SOURCES     ${APP_PATH}/src/InstascopeApp.cpp
+	SOURCES     ${INSTASCOPE_SRC}
+    INCLUDES    ${APP_PATH}/include
 	CINDER_PATH ${CINDER_PATH}
 )

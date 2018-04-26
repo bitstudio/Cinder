@@ -91,6 +91,7 @@ class ImageSourceSurface : public ImageSource {
 		ImageSource::RowFunc func = setupRowFunc( target );
 
 		const uint8_t *data = mData;
+		// last version I fixed mHeight = 1440 why?
 		for( int32_t row = 0; row < mHeight; ++row ) {
 			((*this).*func)( target, row, data );
 			data += mRowBytes;
