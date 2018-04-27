@@ -68,7 +68,7 @@ namespace Bit {
 			case Bit::SURFACE_LOADER:
 				if (isVideoExtension(fileExt)) {
 #ifndef USE_GSTREAMER 
-					qtime::MovieSurface8uRef video = qtime::MovieSurface::create(ci::Url(videoPath));
+					qtime::MovieSurfaceRef video = qtime::MovieSurface::create(ci::Url(videoPath));
 					video->play();
 					video->stop();
 					int frameNumber = video->getNumFrames();
@@ -195,16 +195,6 @@ namespace Bit {
 
 			case Bit::GSTREAMER_LOADER:
 				if (isVideoExtension(fileExt)) {
-
-					// remember last frame
-#ifndef USE_GSTREAMER 
-					qtime::MovieSurface8uRef video = qtime::MovieSurface::create(ci::Url(videoPath));
-					video->play();
-					video->stop();
-					int frameNumber = video->getNumFrames();
-					video->seekToFrame(frameNumber);
-					lastSurface_ = video->getSurface();
-#endif
 
 					gstVideo_ = ci::gstreamer::Video(videoPath);
 

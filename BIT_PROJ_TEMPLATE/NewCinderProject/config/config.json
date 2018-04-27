@@ -11,10 +11,10 @@
     "y": 0
   },
   "sample": {
-    "loadOption": "texture",
-    "path": "EJ.jpg",
+    "loadOption": "gstreamer",
+    "path": "01.mov",
     "playOption": {
-      "loop": false,
+      "loop": true,
       "pingpong": false
     }
   }

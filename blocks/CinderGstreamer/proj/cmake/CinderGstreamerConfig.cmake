@@ -9,16 +9,16 @@ if( NOT TARGET CinderGstreamer )
 
 	if(MSVC)
 
-		get_filename_component( GSTREAMER_LIBRARY_PATH "D:/gstreamer/1.0/x86/lib/" ABSOLUTE )
+		get_filename_component( GSTREAMER_LIBRARY_PATH "D:/gstreamer/1.0/x86_64/lib/" ABSOLUTE )
 		file(GLOB_RECURSE GST_LIBRARIES "${GSTREAMER_LIBRARY_PATH}/*.lib")
 
 		set(CinderGstreamer_INCLUDES 
 			${BIT_GSTREAMER_INCLUDE_PATH} 
-			"D:/gstreamer/1.0/x86/include"
-			"D:/gstreamer/1.0/x86/include/gstreamer-1.0"
-			"D:/gstreamer/1.0/x86/include/glib-2.0"
-			"D:/gstreamer/1.0/x86/lib/glib-2.0/include"
-			"D:/gstreamer/1.0/x86/include/libxml2" )
+			"D:/gstreamer/1.0/x86_64/include"
+			"D:/gstreamer/1.0/x86_64/include/gstreamer-1.0"
+			"D:/gstreamer/1.0/x86_64/include/glib-2.0"
+			"D:/gstreamer/1.0/x86_64/lib/glib-2.0/include"
+			"D:/gstreamer/1.0/x86_64/include/libxml2" )
 
 	else(MSVC)
 		find_package(PkgConfig)

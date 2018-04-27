@@ -48,7 +48,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifdef __unix__
+#ifdef LINUX
     #include <math.h>
     #include <cstring>
     #include "_2RealGStreamerWrapper.h"
@@ -257,7 +257,7 @@ bool GStreamerWrapper::open(std::string strFilename, bool bGenerateVideoBuffer, 
 #ifdef _WIN32 // Use direct show as playback plugin if on Windows; Needed for features like play direction and playback speed to work correctly
 		GstElement* videoSink = gst_element_factory_make( "directdrawsink", NULL );
 		g_object_set( m_GstPipeline, "video-sink", videoSink, NULL );
-#elif defined(__unix__)
+#elif defined(LINUX)
         GstElement* videoSink = gst_element_factory_make( "xvimagesink", NULL );    //possible alternatives: ximagesink (no (gpu) fancy stuff) or better: cluttersink
 		g_object_set( m_GstPipeline, "video-sink", videoSink, NULL );
 #else // Use Mac OSX plugin otherwise
@@ -289,7 +289,7 @@ bool GStreamerWrapper::open(std::string strFilename, bool bGenerateVideoBuffer, 
 #ifdef _WIN32 // Use direct sound plugin if on Windows; Needed for features like play direction and playback speed to work correctly
 		GstElement* audioSink = gst_element_factory_make( "directsoundsink", NULL );
 		g_object_set ( m_GstPipeline, "audio-sink", audioSink, NULL );
-#elif defined(__unix__)
+#elif define(LINUX)
 		GstElement* audioSink = gst_element_factory_make( "pulsesink", NULL );  //alternative: alsasink
 		g_object_set ( m_GstPipeline, "audio-sink", audioSink, NULL );
 #else // Use Mac OSC plugin otherwise
