@@ -8,6 +8,19 @@ if( NOT TARGET BitTao )
 	file(GLOB_RECURSE BIT_TAO_HEADERS "${BITTAO_INCLUDE_PATH}/*.h*")
 	file(GLOB_RECURSE BIT_TAO_LIBRARIES "${BITTAO_LIBRARY_PATH}/${CMAKE_BUILD_TYPE}/*.lib")
 
+	set(BOOST_ROOT "D:/" CACHE STRING "Paths to boost")
+	set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+	set(Boost_USE_MULTITHREADED      ON)
+	set(Boost_USE_STATIC_RUNTIME      ON)
+	find_package(Boost 1.60.0 COMPONENTS chrono date_time filesystem system regex thread)
+	if(Boost_FOUND)
+		message("Boost FOUND! no need to copy libs.")
+		message("${Boost_LIBRARIES}")
+	else()
+		message("Boost not found, use local libs.")
+		message("${BIT_TAO_LIBRARIES}")
+	endif()
+
 	if( NOT TARGET cinder )
 	    include( "${CINDER_PATH}/proj/cmake/configure.cmake" )
 	    find_package( cinder REQUIRED PATHS
@@ -36,7 +49,7 @@ if( NOT TARGET BitTao )
 		"${CinderGstreamer_INCLUDES}"
 		)
 
-	target_link_libraries( BitTao PUBLIC ${OpenCV3_LIBRARIES} ${BIT_TAO_LIBRARIES} PRIVATE cinder)
+	target_link_libraries( BitTao PUBLIC ${OpenCV3_LIBRARIES} ${BIT_TAO_LIBRARIES} ${Boost_LIBRARIES} PRIVATE cinder)
 
 	
 endif()
