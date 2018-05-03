@@ -30,7 +30,12 @@ public:
 		return transform_;
 	}
 
-	void setTransform(SRT_transform transform)
+	void setTransform(const SRT_transform& transform)
+	{
+		transform_ = transform;
+	}
+
+	void operator=(const SRT_transform& transform)
 	{
 		transform_ = transform;
 	}

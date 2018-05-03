@@ -1,21 +1,32 @@
 {
-  "assetPath": "D:\\Cinder\\BIT_PROJ_TEMPLATE\\NewCinderProject\\assets\\",
-  "config_port": 8080,
-  "display": {
-    "alwaysOnTop": false,
-    "borderLess": true,
-    "height": 1080,
-    "hideCursor": false,
-    "width": 1920,
-    "x": 0,
-    "y": 0
-  },
-  "sample": {
-    "loadOption": "gstreamer",
-    "path": "01.mov",
-    "playOption": {
-      "loop": true,
-      "pingpong": false
+    "array": [
+        100.0,
+        "10",
+        true
+    ],
+    "assetPath": "D:\\Cinder\\BIT_PROJ_TEMPLATE\\NewCinderProject\\assets\\",
+    "config_port": 8080,
+    "display": {
+        "alwaysOnTop": false,
+        "borderLess": true,
+        "height": 540,
+        "hideCursor": false,
+        "width": 960,
+        "x": 0,
+        "y": 0
+    },
+    "process": {
+        "bool": true,
+        "float": 0.400000005960464,
+        "int": 7,
+        "string": "abcd"
+    },
+    "sample": {
+        "loadOption": "gstreamer",
+        "path": "01.mov",
+        "playOption": {
+            "loop": true,
+            "pingpong": false
+        }
     }
-  }
 }

@@ -6,6 +6,7 @@
 #include "CinderOpenCV.h"
 #include "media/video.h"
 #include "configuration/Config.h"
+#include "media/effect.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -34,6 +35,10 @@ class BasicApp : public App {
 	Bit::Video vid;
 	cv::VideoCapture* capture_;
 	cv::Mat display_;
+
+	Process process_obj_;
+
+	Effector layer_;
 };
 
 Bit::Config config_;
@@ -58,9 +63,37 @@ void BasicApp::setup()
 
 	capture_ = new cv::VideoCapture(0);
 
-	vid.readConfig(config_.getTreePtr()["sample"], &config_);
+	config_.readConfigurableConfig(vid, "sample");
 	vid.setup();
 	vid.play();
+
+	auto list = config_.getTreePtr()["array"];
+	for (auto iter = list.begin(); iter != list.end(); ++iter)
+	{
+		switch (iter->type())
+		{
+			case json::value_t::boolean:
+				ci::app::console() << iter->get<bool>() << std::endl;
+				break;
+			case json::value_t::string:
+				ci::app::console() << iter->get<std::string>() << std::endl;
+				break;
+			case json::value_t::number_float:
+				ci::app::console() << iter->get<float>() << std::endl;
+				break;
+			case json::value_t::number_integer:
+				ci::app::console() << iter->get<int>() << std::endl;
+				break;
+		}
+	}
+	config_.readConfigurableConfig(process_obj_, "process");
+
+	auto group = std::make_shared<AggregatedEffect>(SRT_transform(ci::vec2(), 0, 0.5));
+
+	group->push_back(std::make_shared<Winkle>(SRT_transform(ci::vec2(), 0, 0.5), vid));
+	group->push_back(std::make_shared<Winkle>(SRT_transform(ci::vec2(0, -0.5), 0, 0.5), vid));
+
+	layer_.addEffect(group);
 }
 
 void BasicApp::mouseDrag( MouseEvent event )
@@ -90,7 +123,6 @@ void BasicApp::keyDown( KeyEvent event )
 
 void BasicApp::update()
 {
-	Process nothing_obj_;
 	capture_->read(display_);
 	if (!display_.empty())
 		cv::imshow("test2", display_);
@@ -108,15 +140,15 @@ void BasicApp::draw()
 	// See also: gl::ScopedColor
 	gl::color( 1.0f, 1.0f, 1.0f );
 
-	auto surface = vid.getSurface();
-	if (surface)
+	auto tex = vid.getTexture();
+	if (tex)
 	{
 		//cv::imwrite("test.png", ci::toOcv(*surface));
 		gl::draw(ci::gl::Texture2d::create(ci::fromOcv(display_)), ci::app::getWindowBounds());
-		gl::draw(ci::gl::Texture2d::create(*surface));
+		gl::draw(tex);
 
-		auto tex = vid.getTexture();
-		if (tex) gl::draw(tex, ci::Area(0, 0, 100, 100));
+
+		layer_.draw(ci::app::getWindowBounds());
 	}
 		
 	gl::begin( GL_LINE_STRIP );

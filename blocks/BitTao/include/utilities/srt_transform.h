@@ -36,6 +36,33 @@ public:
 	{
 	}
 
+	SRT_transform& operator+(const SRT_transform& transform)
+	{
+		translation_ = translation_ + transform.translation_;
+		orientation_ = orientation_ + transform.orientation_;
+		scale_ = scale_ + transform.scale_;
+		return *this;
+	}
+
+	SRT_transform& operator+(const ci::dvec2 translate)
+	{
+		translation_ = translation_ + translate;
+		return *this;
+	}
+
+	SRT_transform& rotate(const double rotate)
+	{
+		orientation_ = orientation_ + rotate;
+		return *this;
+	}
+
+	SRT_transform& scale(const double scale)
+	{
+		scale_ = scale_*scale;
+		return *this;
+	}
+
+
 private:
 	ci::dvec2 translation_;
 	double orientation_;

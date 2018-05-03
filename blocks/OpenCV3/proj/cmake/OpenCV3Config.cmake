@@ -1,7 +1,7 @@
 if( NOT TARGET OpenCV3 )
 	
 	if(MSVC)
-		set(OpenCV3_LOCATION "D:/opencv/3.4.0/build_x64/")
+		set(OpenCV3_LOCATION "D:/opencv/3.4.0/build_x64/" CACHE STRING "Path to opencv")
 		file(GLOB_RECURSE CV_LIBS "${OpenCV3_LOCATION}/lib/${CMAKE_BUILD_TYPE}/*.lib")
 		file(GLOB_RECURSE CV_3rdparty_LIBS "${OpenCV3_LOCATION}/3rdparty/lib/${CMAKE_BUILD_TYPE}/*.lib")
 		file(GLOB_RECURSE CV_ippicv_LIBS "${OpenCV3_LOCATION}/3rdparty/ippicv/ippicv_win/lib/intel64/*.lib")

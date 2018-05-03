@@ -136,6 +136,7 @@ namespace Bit {
 
 		std::string get_value()
 		{
+			if (ptr == nullptr) return "";
 			return *((std::string*)ptr);
 		}
 
@@ -172,6 +173,7 @@ namespace Bit {
 
 		int get_value()
 		{
+			if (ptr == nullptr) return 0;
 			return *((int*)ptr);
 		}
 
@@ -213,6 +215,7 @@ namespace Bit {
 
 		T get_value()
 		{
+			if (ptr == nullptr) return 0;
 			return *((T*)ptr);
 		}
 
@@ -251,6 +254,7 @@ namespace Bit {
 
 		bool get_value()
 		{
+			if (ptr == nullptr) return false;
 			return *((bool*)ptr);
 		}
 
@@ -293,6 +297,7 @@ namespace Bit {
 
 		ci::vec2 get_value()
 		{
+			if (ptr == nullptr) return ci::vec2();
 			return *((ci::vec2*)ptr);
 		}
 
@@ -350,6 +355,7 @@ namespace Bit {
 
 		int get_value()
 		{
+			if (ptr == nullptr) return 0;
 			return *((int*)ptr);
 		}
 

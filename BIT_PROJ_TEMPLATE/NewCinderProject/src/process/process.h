@@ -1,6 +1,14 @@
 #pragma once
+#include "configuration/Config.h"
 
-class Process {
+using namespace Bit;
+
+class Process : public Configurable {
 public:
 	Process();
+	void readConfig(json& tree, Config* config);
+
+private:
+	int test_int_;
+
 };
