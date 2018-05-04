@@ -251,6 +251,11 @@ public:
 		playing_ = false;
 	}
 
+	void push_back(Effect* effect)
+	{
+		this->push_back(std::shared_ptr<Effect>(effect));
+	}
+
 	void push_back(std::shared_ptr<Effect> effect)
 	{
 		chain_.push_back(effect);
@@ -312,6 +317,11 @@ public:
 	{
 		transform_ = transform;
 		playing_ = false;
+	}
+
+	void push_back(Effect* effect)
+	{
+		this->push_back(std::shared_ptr<Effect>(effect));
 	}
 
 	void push_back(std::shared_ptr<Effect> effect)
@@ -390,6 +400,11 @@ public:
 		new_ = nullptr;
 		done_ = false;
 		playing_ = false;
+	}
+
+	void push_back(Effect* effect)
+	{
+		this->push_back(std::shared_ptr<Effect>(effect));
 	}
 
 	void push_back(std::shared_ptr<Effect> effect)
@@ -510,6 +525,10 @@ public:
 	{
 	}
 
+	SharedEffect(SRT_transform transform, Effect* tmpl): SharedEffect(transform, std::shared_ptr<Effect>(tmpl))
+	{
+	}
+
 	SharedEffect(SRT_transform transform, std::shared_ptr<Effect> tmpl)
 	{
 		effect_ = tmpl;
@@ -546,6 +565,10 @@ private:
 class NotShowEffect : public Effect {
 public:
 	NotShowEffect()
+	{
+	}
+
+	NotShowEffect(Effect* tmpl):NotShowEffect(std::shared_ptr<Effect>(tmpl))
 	{
 	}
 
