@@ -12,7 +12,7 @@
 #include "utilities/json.hpp"
 #include <chrono>
 #include <boost/system/system_error.hpp>
-#include <boost/asio/deadline_timer.hpp>
+#include <asio/deadline_timer.hpp>
 #include <cstdlib>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/lambda.hpp>

@@ -30,6 +30,7 @@ if( NOT TARGET BitTao )
 	find_package(Boost 1.60.0 COMPONENTS chrono date_time filesystem system regex thread)
 	if(Boost_FOUND)
 		message("Boost FOUND! no need to copy libs.")
+		message("${Boost_INCLUDE_DIRS}")
 		message("${Boost_LIBRARIES}")
 	else()
 		message("Boost not found, use local libs.")
@@ -59,6 +60,7 @@ if( NOT TARGET BitTao )
 	target_include_directories( BitTao PUBLIC 
 		${BITTAO_SOURCE_PATH}
 		${BITTAO_INCLUDE_PATH}
+		"${Boost_INCLUDE_DIRS}"
 		"${CINDER_PATH}/include"
 		"${OpenCV3_INCLUDES}"
 		"${CinderGstreamer_INCLUDES}"

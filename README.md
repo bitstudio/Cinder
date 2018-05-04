@@ -13,7 +13,6 @@
 	bootstrap.bat
 	b2 -j8 toolset=msvc-version address-model=64 link=static --build-type=complete stage
 ```
-* Copy boost libs to BitTao block
 * Use CMake to build Cinder
 * Copy template from `BIT_PROJ_TEMPLATE`
 * Enjoy
