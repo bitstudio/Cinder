@@ -394,4 +394,67 @@ namespace Bit {
 
 	};
 
+	class Field2dVariable : public ConfigurableVariable {
+	public:
+		Field2dVariable(json* storage, ci::dvec2* ptr) : ConfigurableVariable(storage, ptr)
+		{
+		}
+
+		json to_json()
+		{
+			json obj;
+			obj["x"] = ((ci::dvec2*)ptr)->x;
+			obj["y"] = ((ci::dvec2*)ptr)->y;
+			return obj;
+		}
+
+		void assign(json::value_type value)
+		{
+			if (storage)
+			{
+				*(storage) = value;
+			}
+			if (ptr)
+			{
+				ci::dvec2 v = ci::dvec2(value["x"].get<float>(), value["y"].get<float>());
+				*((ci::dvec2*)ptr) = v;
+			}
+		}
+
+		ci::dvec2 get_value()
+		{
+			if (ptr == nullptr) return ci::dvec2();
+			return *((ci::dvec2*)ptr);
+		}
+
+		std::string get_tag(std::string id)
+		{
+			std::stringstream stream;
+			ci::dvec2 v = get_value();
+			stream << "<div id=\"" + id + "\" style=\"height: 100px; width: 100px; background-color: blue;\"></div><br>";
+			return stream.str();
+		}
+
+		std::string get_event_handler(std::string id)
+		{
+			std::stringstream stream;
+			stream << "$('#" + id + "').on('mousemove', sendFieldData);";
+			stream << "$('#" + id + "').on('touchmove', sendFieldData);";
+			return stream.str();
+		}
+
+		std::string get_sender_script()
+		{
+			std::stringstream stream;
+			stream << "window.sendFieldData = function(e) {";
+			stream << "var x = (e.pageX - e.target.offsetLeft)/100.0; var y = (e.pageY - e.target.offsetTop)/100.0;";
+			stream << "var update = {};var id = e.target.id;";
+			stream << "update[id] = {'x':x, 'y':y};";
+			stream << "XHR.open('POST', '/update');XHR.setRequestHeader('Content-Type', 'application/json');var msg = JSON.stringify(update);XHR.send(msg);";
+			stream << "e.preventDefault()};";
+			return stream.str();
+		}
+
+	};
+
 }

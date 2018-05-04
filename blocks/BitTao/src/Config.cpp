@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include "configuration/jquery.h"
 
 namespace Bit{
 
@@ -133,7 +134,7 @@ namespace Bit{
 			}
 
 			stream.str("");
-			stream << "<html><head><title>Configuration</title></head><body><div>";
+			stream << "<html><head><title>Configuration</title> <script src=\"/jquery\"></script></head><body><div>";
 			stream << "<input type=\"button\" onclick=\"saveData()\" value=\"save param\"><br>";
 			for (auto iter = callbacks_.begin(); iter != callbacks_.end(); ++iter)
 				stream << "<input type=\"button\" id=\"" + iter->first + "\" value=\"" + iter->first + "\"><br>";
@@ -171,6 +172,13 @@ namespace Bit{
 			
 			std::stringstream stream;
 			stream << msg.dump();
+			response->write(stream);
+		};
+
+		server_.resource["^/jquery"]["GET"] = [this](std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request) {
+			std::stringstream stream;
+			stream << jquery_content_A << jquery_content_B << jquery_content_C << jquery_content_D << jquery_content_E;
+			stream << jquery_content_F << jquery_content_G << jquery_content_H;
 			response->write(stream);
 		};
 

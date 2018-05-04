@@ -1,4 +1,4 @@
-#include "algorithms/BitPerspectiveProjection.h"
+#include "algorithms/area_sampler.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/Utilities.h"
