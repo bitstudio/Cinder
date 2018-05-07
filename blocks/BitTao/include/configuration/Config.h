@@ -49,7 +49,8 @@ namespace Bit {
 		void readConfigurableConfig(Configurable& configurable, const std::string& configNodeName);		// call configurable.readConfig() giving the specified child node as argument
 
 		void bind_interface(std::string alias, ConfigurableVariable* var);
-		void bind_event(std::string alias, std::function<void(std::string, void*)> callback, void* data);
+		void bind_button(std::string alias, std::function<void(std::string, std::string, void*)> callback, void* data);
+		void bind_event(std::string alias, std::string event, std::function<void(std::string, std::string, void*)> callback, void* data);
 
 		static std::string getAssetPath();	// return cached assetPath_
 		DisplayConfig getDisplayConfig(std::string displayKey = "display");
@@ -69,7 +70,7 @@ namespace Bit {
 		std::thread server_thread_;
 
 		std::map<std::string, std::shared_ptr<ConfigurableVariable> > variables_;
-		std::map<std::string, std::pair<std::function<void(std::string, void*)>, void*> > callbacks_;
+		std::map<std::string, std::map<std::string, std::list<std::tuple<std::function<void(std::string, std::string, void*)>, void*>>>> callbacks_;
 		std::set<std::string, script_compare> unique_sender_scripts_;
 
 		void assign_variables(std::string path, json node);
@@ -395,9 +396,13 @@ namespace Bit {
 	};
 
 	class Field2dVariable : public ConfigurableVariable {
+	private:
+		std::string color_str_;
+
 	public:
-		Field2dVariable(json* storage, ci::dvec2* ptr) : ConfigurableVariable(storage, ptr)
+		Field2dVariable(json* storage, ci::dvec2* ptr, std::string color_str="blue") : ConfigurableVariable(storage, ptr)
 		{
+			color_str_ = color_str;
 		}
 
 		json to_json()
@@ -431,15 +436,19 @@ namespace Bit {
 		{
 			std::stringstream stream;
 			ci::dvec2 v = get_value();
-			stream << "<div id=\"" + id + "\" style=\"height: 100px; width: 100px; background-color: blue;\"></div><br>";
+			stream << "<div style=\"text-align: center;\"><div id=\"" + id + "\" style=\"height: 100px; width: 100px; display: inline-block; background-color: " + color_str_ + ";\"></div></div><br>";
 			return stream.str();
 		}
 
 		std::string get_event_handler(std::string id)
 		{
 			std::stringstream stream;
+			stream << "$('#" + id + "').on('mousedown', sendFieldData);";
 			stream << "$('#" + id + "').on('mousemove', sendFieldData);";
+			stream << "$('#" + id + "').on('mouseup', sendFieldData);";
+			stream << "$('#" + id + "').on('touchstart', sendFieldData);";
 			stream << "$('#" + id + "').on('touchmove', sendFieldData);";
+			stream << "$('#" + id + "').on('touchend', sendFieldData);";
 			return stream.str();
 		}
 
@@ -447,7 +456,7 @@ namespace Bit {
 		{
 			std::stringstream stream;
 			stream << "window.sendFieldData = function(e) {";
-			stream << "var x = (e.pageX - e.target.offsetLeft)/100.0; var y = (e.pageY - e.target.offsetTop)/100.0;";
+			stream << "var x = ((e.pageX || e.originalEvent.touches[0].pageX) - e.target.offsetLeft)/100.0; var y = ((e.pageY || e.originalEvent.touches[0].pageY) - e.target.offsetTop)/100.0;";
 			stream << "var update = {};var id = e.target.id;";
 			stream << "update[id] = {'x':x, 'y':y};";
 			stream << "XHR.open('POST', '/update');XHR.setRequestHeader('Content-Type', 'application/json');var msg = JSON.stringify(update);XHR.send(msg);";

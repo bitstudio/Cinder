@@ -134,25 +134,35 @@ namespace Bit{
 			}
 
 			stream.str("");
-			stream << "<html><head><title>Configuration</title> <script src=\"/jquery\"></script></head><body><div>";
+			stream << "<html><head><title>Configuration</title> <script src=\"/jquery\"></script><meta name=\"viewport\" content=\"width=600\"></head><body><div>";
 			stream << "<input type=\"button\" onclick=\"saveData()\" value=\"save param\"><br>";
 			for (auto iter = callbacks_.begin(); iter != callbacks_.end(); ++iter)
-				stream << "<input type=\"button\" id=\"" + iter->first + "\" value=\"" + iter->first + "\"><br>";
+			{
+				if (iter->second.find("click") != iter->second.end())
+				{
+					stream << "<input type=\"button\" id=\"" + iter->first + "\" value=\"" + iter->first + "\"><br>";
+				}
+			}
 			for (auto iter = list1.begin(); iter != list1.end(); ++iter)
 				stream << *iter;
 			stream << "</div>" << std::endl;
 
 			stream << "<script>window.onload=function(){";
-			for (auto iter = callbacks_.begin(); iter != callbacks_.end(); ++iter)
-				stream << "document.getElementById(\"" + iter->first + "\").addEventListener('click', trigger);";
 			for (auto iter = list2.begin(); iter != list2.end(); ++iter)
 				stream << *iter;
+			for (auto iter = callbacks_.begin(); iter != callbacks_.end(); ++iter)
+			{
+				for (auto iiter = iter->second.begin(); iiter != iter->second.end(); ++iiter)
+				{
+					stream << "$(\"#" + iter->first + "\").on(\"" + iiter->first + "\", trigger);";
+				}
+			}
 			stream << "};var XHR = new XMLHttpRequest();window.saveData = function(event) {XHR.open('POST', '/save');XHR.setRequestHeader('Content-Type', 'application/json');XHR.send('{}');};";
 			this->populate_sender_script(stream);
 
 			stream << "window.trigger = function(event) {";
-			stream << "var update = {};update[event.target.id] = true;";
-			stream << "XHR.open('POST', '/trigger');XHR.setRequestHeader('Content-Type', 'application/json');var msg = JSON.stringify(update);XHR.send(msg);};";
+			stream << "var update = {};update[\"id\"] = event.target.id;update[\"event\"] = event.type;";
+			stream << "var xhr = new XMLHttpRequest();xhr.open('POST', '/trigger');xhr.setRequestHeader('Content-Type', 'application/json');var msg = JSON.stringify(update);xhr.send(msg);};";
 
 			stream << "</script></body></html>";
 
@@ -177,8 +187,7 @@ namespace Bit{
 
 		server_.resource["^/jquery"]["GET"] = [this](std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request) {
 			std::stringstream stream;
-			stream << jquery_content_A << jquery_content_B << jquery_content_C << jquery_content_D << jquery_content_E;
-			stream << jquery_content_F << jquery_content_G << jquery_content_H;
+			append_jquery(stream);
 			response->write(stream);
 		};
 
@@ -250,11 +259,12 @@ namespace Bit{
 
 	void Config::trigger_callbacks(std::string path, json node)
 	{
-		for (json::iterator it = node.begin(); it != node.end(); ++it)
+		std::string key = node["id"];
+		std::string event = node["event"];
+		auto list = callbacks_[key][event];
+		for(auto tuple : list)
 		{
-			std::string key = path + it.key();
-			auto tuple = callbacks_[key];
-			std::get<0>(tuple)(key, std::get<1>(tuple));
+			std::get<0>(tuple)(key, event, std::get<1>(tuple));
 		}
 	}
 
@@ -265,9 +275,14 @@ namespace Bit{
 		unique_sender_scripts_.insert(p->get_sender_script());
 	}
 
-	void Config::bind_event(std::string alias, std::function<void(std::string, void*)> callback, void* data)
+	void Config::bind_button(std::string alias, std::function<void(std::string, std::string, void*)> callback, void* data)
 	{
-		callbacks_[alias] = std::make_pair(callback, data);
+		callbacks_[alias]["click"].push_back(std::make_tuple(callback, data));
+	}
+
+	void Config::bind_event(std::string alias, std::string event, std::function<void(std::string, std::string, void*)> callback, void* data)
+	{
+		callbacks_[alias][event].push_back(std::make_tuple(callback, data));
 	}
 
 }
