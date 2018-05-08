@@ -1,4 +1,4 @@
-#include "algorithms/area_sampler.h"
+#include "algorithms/area_projector.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/Utilities.h"
@@ -8,19 +8,7 @@ using namespace ci;
 
 namespace Bit {
 	
-	void onMouse(int event, int x, int y, int, void* data)
-	{
-		auto projectible = (Sampler*) data;
-
-		switch (event)
-		{
-		case cv::MouseEventTypes::EVENT_LBUTTONDOWN:
-			projectible->setCorners(cv::Point(x, y));
-			break;
-		}
-	}
-
-	Sampler::Sampler(std::string id = "0", cv::Size size = cv::Size(1.0, 1.0))
+	Projector::Projector(std::string id = "0", cv::Size size = cv::Size(1.0, 1.0))
 	{
 		id_ = id;
 
@@ -34,11 +22,10 @@ namespace Bit {
 		readCache();
 		calibrate();
 
-		show_ = false;
 		index_ = 0;
 	}
 
-	void Sampler::readCache()
+	void Projector::readCache()
 	{
 		std::stringstream ss;
 		ss << id_ << ".ptj";
@@ -61,7 +48,7 @@ namespace Bit {
 		}
 	}
 
-	void Sampler::writeCache()
+	void Projector::writeCache()
 	{
 		std::stringstream ss;
 		ss << id_ << ".ptj";
@@ -75,19 +62,5 @@ namespace Bit {
 		myfile.close();
 	}
 
-	void Sampler::toggleShowConsole()
-	{
-		show_ = !show_;
-		if (show_)
-		{
-			index_ = 0;
-			cv::namedWindow(id_);
-			cv::setMouseCallback(id_, onMouse, this);
-		}
-		else
-		{
-			cv::destroyWindow(id_);
-		}
-	}
 	
 }
