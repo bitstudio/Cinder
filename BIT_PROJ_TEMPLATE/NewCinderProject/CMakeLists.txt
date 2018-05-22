@@ -13,13 +13,14 @@ project( ${BIT_PROJECT_NAME} )
 
 include( "${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake" )
 
+file(GLOB_RECURSE BIT_HEADERS "${APP_PATH}/include/*.*")
 file(GLOB_RECURSE BIT_SRC "${APP_PATH}/src/*.*")
 file(GLOB_RECURSE BIT_CONFIG "${APP_PATH}/config/*.json")
 
 ci_make_app (
     APP_NAME    ${BIT_PROJECT_NAME}
     CINDER_PATH ${CINDER_PATH}
-    SOURCES     ${BIT_SRC} ${BIT_CONFIG}
+    SOURCES     ${BIT_HEADERS} ${BIT_SRC} ${BIT_CONFIG}
     INCLUDES    ${APP_PATH}/include ${APP_PATH}/config
     BLOCKS 		${BIT_BLOCKS}
 )
