@@ -191,8 +191,16 @@ namespace Bit{
 			response->write(stream);
 		};
 
-		server_.default_resource["GET"] = [this](std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request) {
+		for (auto iter = custom_get_.begin(); iter != custom_get_.end(); ++iter)
+		{
+			server_.resource["^/" + std::get<0>(*iter)]["GET"] = [iter](std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request) {
+				auto function_call = std::get<1>(*iter);
+				auto data = std::get<2>(*iter);
+				function_call(response, request, data);
+			};
+		}
 
+		server_.default_resource["GET"] = [this](std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request) {
 			std::string path = this->getAssetPath() + request->path;
 			std::ifstream file(path);
 			if (file.is_open())
@@ -204,7 +212,6 @@ namespace Bit{
 				response->write(SimpleWeb::StatusCode::client_error_not_found);
 			}
 		};
-
 
 		server_thread_ = std::thread([&]() {
 			// Start server
@@ -284,5 +291,11 @@ namespace Bit{
 	{
 		callbacks_[alias][event].push_back(std::make_tuple(callback, data));
 	}
+
+	void Config::bind_http_get_path(std::string path, std::function<void(std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request, void*)> callback, void* data)
+	{
+		custom_get_.push_back(std::make_tuple(path, callback, data));
+	}
+
 
 }

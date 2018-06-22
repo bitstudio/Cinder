@@ -21,8 +21,8 @@ void draw_fit_area_preserve_asp(ci::gl::TextureRef tex)
 
 void Effector::setup()
 {
-}
 
+}
 
 void Effector::addEffect(Effect* effect)
 {
@@ -31,7 +31,6 @@ void Effector::addEffect(Effect* effect)
 
 void Effector::addEffect(std::shared_ptr<Effect> effect)
 {
-	std::lock_guard<std::mutex> lock(mutex_);
 
 	//creation
 	this->playing_.push_back(std::shared_ptr<Effect>(effect));
@@ -40,7 +39,6 @@ void Effector::addEffect(std::shared_ptr<Effect> effect)
 
 void Effector::draw(ci::Area area)
 {
-	std::lock_guard<std::mutex> lock(mutex_);
 
 	//termination
 	for (auto iter = this->playing_.begin(); iter != this->playing_.end();)

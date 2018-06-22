@@ -34,7 +34,10 @@ namespace Bit {
 
 	void Video::readConfig(json& tree, Bit::Config* config)
 	{
-		config_.path = Bit::Config::getAssetPath() + tree["path"].get<std::string>();
+		auto path = tree["path"].get<std::string>();
+		if (path.find("http://") == std::string::npos && path.find("https://") == std::string::npos)
+			path = Bit::Config::getAssetPath() + path;
+		config_.path = path;
 		config_.loadOption = tree["loadOption"].get<std::string>();
 		config_.loop = tree["playOption"]["loop"].get<bool>();
 		config_.pingpong = tree["playOption"]["pingpong"].get<bool>();

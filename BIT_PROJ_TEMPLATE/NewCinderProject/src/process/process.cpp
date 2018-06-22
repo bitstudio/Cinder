@@ -20,7 +20,7 @@ void Process::readConfig(json& tree, Config* config)
 
 	config->bind_interface("float type", new Bit::NumericVariable<float>(&tree["float"], nullptr, 0, 1.0, 0.1));
 
-	config->bind_event("trigger", [](std::string key, void* data) {
+	config->bind_button("trigger", [](std::string key, std::string event, void* data) {
 		ci::app::console() << key << std::endl;
 	}, nullptr);
 }

@@ -3,8 +3,6 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "utilities/srt_transform.h"
-#include <thread>
-#include <mutex>
 
 void draw_fit_area_preserve_asp(ci::gl::TextureRef tex);
 
@@ -50,12 +48,14 @@ class UniqueVisualEffect : public Effect {
 public:
 	UniqueVisualEffect()
 	{
+		loop_ = false;
 	}
 
 	UniqueVisualEffect(SRT_transform transform, Bit::Video* video)
 	{
 		video_ = video;
 		transform_ = transform;
+		loop_ = false;
 	}
 
 	void play()
@@ -71,17 +71,28 @@ public:
 
 	bool isDone()
 	{
-		return video_->isDone();
+		return !loop_ && video_->isDone();
+	}
+
+	void setLoop(bool flag)
+	{
+		loop_ = flag;
 	}
 
 	void draw()
 	{
 		SRT_transform::ScopeTransform s(transform_);
+		if (loop_ && video_->isDone())
+		{
+			video_->stop();
+			video_->play();
+		}
 		draw_fit_area_preserve_asp(video_->getTexture());
 	}
 
 private:
 	Bit::Video* video_;
+	bool loop_;
 };
 
 class Winkle : public Effect {
@@ -142,6 +153,15 @@ public:
 
 		terminating_ = false;
 		phase_ = 0;
+	}
+
+	void reset()
+	{
+		terminating_ = false;
+		phase_ = 0;
+		videoStart_.stop();
+		videoLoop_.stop();
+		videoEnd_.stop();
 	}
 
 	void play()
@@ -261,6 +281,19 @@ public:
 		chain_.push_back(effect);
 		if(chain_.size() == 1 && playing_) chain_.front()->play();
 	}
+	
+	void push(Effect* effect, int index) {
+		this->push(std::shared_ptr<Effect>(effect), index);
+	}
+
+	void push(std::shared_ptr<Effect> effect, int index) {
+		if (index < 0) index = index + chain_.size();
+		auto iter = chain_.begin();
+		for (int i = 0; i < index; ++i)
+			++iter;
+		chain_.insert(iter, effect);
+		if (chain_.size() == 1 && playing_) chain_.front()->play();
+	}
 
 	void play()
 	{
@@ -289,9 +322,24 @@ public:
 			{
 				this->chain_.erase(this->chain_.begin());
 				play();
+				if (chain_.size() > 0) chain_.front()->draw();
 			}
-			chain_.front()->draw();
+			else 
+			{
+				chain_.front()->draw();
+			}
 		}
+	}
+
+	int size()
+	{
+		return chain_.size();
+	}
+
+	void clear()
+	{
+		if (chain_.size() > 0) chain_.front()->stop();
+		chain_.clear();
 	}
 
 	void terminate()
@@ -451,7 +499,7 @@ public:
 				if (current_ != nullptr) 
 				{
 					current_->play();
-					//current_->draw();
+					current_->draw();
 				}
 			}
 			else 
@@ -623,5 +671,4 @@ public:
 protected:
 
 	std::list<std::shared_ptr<Effect>> playing_;
-	std::mutex mutex_;
 };

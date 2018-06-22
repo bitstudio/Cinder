@@ -52,6 +52,8 @@ namespace Bit {
 		void bind_button(std::string alias, std::function<void(std::string, std::string, void*)> callback, void* data);
 		void bind_event(std::string alias, std::string event, std::function<void(std::string, std::string, void*)> callback, void* data);
 
+		void bind_http_get_path(std::string path, std::function<void(std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request, void*)> callback, void* data);
+
 		static std::string getAssetPath();	// return cached assetPath_
 		DisplayConfig getDisplayConfig(std::string displayKey = "display");
 
@@ -72,6 +74,7 @@ namespace Bit {
 		std::map<std::string, std::shared_ptr<ConfigurableVariable> > variables_;
 		std::map<std::string, std::map<std::string, std::list<std::tuple<std::function<void(std::string, std::string, void*)>, void*>>>> callbacks_;
 		std::set<std::string, script_compare> unique_sender_scripts_;
+		std::list <std::tuple<std::string, std::function<void(std::shared_ptr<HttpServer::Response> response, std::shared_ptr<HttpServer::Request> request, void*)>, void*>> custom_get_;
 
 		void assign_variables(std::string path, json node);
 		void trigger_callbacks(std::string path, json node);
