@@ -54,18 +54,22 @@ public:
 
 	void get(std::string url, std::string port, std::string path, std::string header = "")
 	{
+		if (num_active_calls_ > 20) return;
 		mutex_.lock();
-		calls_.push_back(HTTP_Params(url, port, path, header));
-		while (calls_.size() > 10) calls_.pop_front();
+		num_active_calls_++;
 		mutex_.unlock();
+		auto thread = boost::thread(&Http::get_internal, this, HTTP_Params(url, port, path, header));
+		thread.detach();
 	}
 
 	void post(std::string url, std::string port, std::string path, json& body, std::string header = "")
 	{
+		if (num_active_calls_ > 20) return;
 		mutex_.lock();
-		calls_.push_back(HTTP_Params(url, port, path, body, header));
-		while (calls_.size() > 10) calls_.pop_front();
+		num_active_calls_++;
 		mutex_.unlock();
+		auto thread = boost::thread(&Http::post_internal, this, HTTP_Params(url, port, path, body, header));
+		thread.detach();
 	}
 
 	int getQueueSize()
@@ -108,19 +112,12 @@ public:
 
 	Http()
 	{
-		active_queue_size = 10;
-		running_ = true;
-		thread_ = boost::thread(boost::bind(&Http::queue_runner, this));
+		num_active_calls_ = 0;
 	}
 
 	~Http()
 	{
 		reset();
-		running_ = false;
-		if (thread_.joinable())
-		{
-			thread_.join();
-		}
 	}
 
 private:
@@ -128,16 +125,9 @@ private:
 	std::list<json> buffer_;
 	boost::mutex mutex_;
 
-	std::string url_;
-	std::string port_;
-	std::string path_;
-
 	float last_update_;
 
-	int active_queue_size;
-	std::list<HTTP_Params> calls_;
-	boost::thread thread_;
-	bool running_;
+	int num_active_calls_;
 
 	void push_error(std::string path, int code = -1)
 	{
@@ -150,38 +140,19 @@ private:
 		mutex_.unlock();
 	}
 
-	void queue_runner()
+	void get_internal(HTTP_Params param)
 	{
-		while (running_)
-		{
-			if (calls_.size() > 0)
-			{
-				mutex_.lock();
-				auto front = calls_.front();
-				calls_.pop_front();
-				mutex_.unlock();
-				switch (front.verb)
-				{
-				case HTTP_Verb::GET:
-					get_internal(front.url, front.port, front.path, front.header);
-					break;
-				case HTTP_Verb::POST:
-					post_internal(front.url, front.port, front.path, front.body, front.header);
-					break;
-				}
-			}
-		}
-	}
-
-	void get_internal(std::string url, std::string port, std::string path, std::string header)
-	{
+		std::string url = param.url;
+		std::string port = param.port;
+		std::string path = param.path;
+		std::string header = param.header;
 		try
 		{
 			boost::asio::io_service io_service;
 
 			// Try each endpoint until we successfully establish a connection.
 			tcp::socket socket(io_service);
-			connect(io_service, socket, url, port, boost::posix_time::seconds(10));
+			connect(io_service, socket, url, port, boost::posix_time::seconds(2));
 
 			// Form the request. We specify the "Connection: close" header so that the
 			// server will close the socket after transmitting the response. This will
@@ -202,7 +173,7 @@ private:
 			// grow to accommodate the entire line. The growth may be limited by passing
 			// a maximum size to the streambuf constructor.
 			boost::asio::streambuf response;
-			read_until(io_service, socket, response, "\r\n", boost::posix_time::seconds(5));
+			read_until(io_service, socket, response, "\r\n", boost::posix_time::seconds(2));
 
 			// Check that response is OK.
 			std::istream response_stream(&response);
@@ -226,7 +197,7 @@ private:
 			}
 
 			// Read the response headers, which are terminated by a blank line.
-			boost::asio::read_until(socket, response, "\r\n\r\n");
+			read_until(io_service, socket, response, "\r\n\r\n", boost::posix_time::seconds(2));
 
 			// Process the response headers.
 			std::string header;
@@ -262,17 +233,25 @@ private:
 			//push_error(path);
 		}
 
+		mutex_.lock();
+		num_active_calls_--;
+		mutex_.unlock();
 	}
 
-	void post_internal(std::string url, std::string port, std::string path, json& body, std::string header)
+	void post_internal(HTTP_Params param)
 	{
+		std::string url = param.url;
+		std::string port = param.port;
+		std::string path = param.path;
+		json body = param.body;
+		std::string header = param.header;
 		try
 		{
 			boost::asio::io_service io_service;
 
 			// Try each endpoint until we successfully establish a connection.
 			tcp::socket socket(io_service);
-			connect(io_service, socket, url, port, boost::posix_time::seconds(10));
+			connect(io_service, socket, url, port, boost::posix_time::seconds(2));
 
 			std::string payload = body.dump();
 
@@ -299,7 +278,7 @@ private:
 			// grow to accommodate the entire line. The growth may be limited by passing
 			// a maximum size to the streambuf constructor.
 			boost::asio::streambuf response;
-			read_until(io_service, socket, response, "\r\n", boost::posix_time::seconds(5));
+			read_until(io_service, socket, response, "\r\n", boost::posix_time::seconds(2));
 
 			// Check that response is OK.
 			std::istream response_stream(&response);
@@ -323,7 +302,7 @@ private:
 			}
 
 			// Read the response headers, which are terminated by a blank line.
-			boost::asio::read_until(socket, response, "\r\n\r\n");
+			read_until(io_service, socket, response, "\r\n\r\n", boost::posix_time::seconds(2));
 
 			// Process the response headers.
 			std::string header;
@@ -359,6 +338,9 @@ private:
 			//push_error(path);
 		}
 
+		mutex_.lock();
+		num_active_calls_--;
+		mutex_.unlock();
 	}
 
 	void removeCharsFromString(std::string &str, char* charsToRemove)
@@ -372,39 +354,20 @@ private:
 	void connect(boost::asio::io_service& io_service, tcp::socket& socket, const std::string& host, const std::string& service,
 		boost::posix_time::time_duration timeout)
 	{
-
 		// Resolve the host name and service to a list of endpoints.
 		tcp::resolver::query query(host, service);
 		tcp::resolver::iterator iter = tcp::resolver(io_service).resolve(query);
 		
 		deadline_timer deadline(io_service);
-		// Set a deadline for the asynchronous operation. As a host name may
-		// resolve to multiple endpoints, this function uses the composed operation
-		// async_connect. The deadline applies to the entire operation, rather than
-		// individual connection attempts.
 		deadline.expires_from_now(timeout);
 
-		// Set up the variable that receives the result of the asynchronous
-		// operation. The error code is set to would_block to signal that the
-		// operation is incomplete. Asio guarantees that its asynchronous
-		// operations will never fail with would_block, so any other value in
-		// ec indicates completion.
 		boost::system::error_code ec = boost::asio::error::would_block;
 
-		// Start the asynchronous operation itself. The boost::lambda function
-		// object is used as a callback and will update the ec variable when the
-		// operation completes. The blocking_udp_client.cpp example shows how you
-		// can use boost::bind rather than boost::lambda.
 		boost::asio::async_connect(socket, iter, var(ec) = boost::lambda::_1);
 
 		// Block until the asynchronous operation has completed.
 		do io_service.run_one(); while (ec == boost::asio::error::would_block);
 
-		// Determine whether a connection was successfully established. The
-		// deadline actor may have had a chance to run and close our socket, even
-		// though the connect operation notionally succeeded. Therefore we must
-		// check whether the socket is still open before deciding if we succeeded
-		// or failed.
 		if (ec || !socket.is_open())
 			throw boost::system::system_error(ec ? ec : boost::asio::error::operation_aborted);
 	}
